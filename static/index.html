@@ -3,30 +3,42 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/styles.css" rel="stylesheet">
     <title>partygame</title>
 </head>
 
 <body>
-    <div id="gameArea">
-        <!-- This will display the templates defined below -->
+    <div class="container-fluid">
+        <div id="gameArea">
+            <!-- This will display the templates defined below -->
+        </div>
     </div>
 
+    <!-- TEMPLATES -->
     <!-- 
         Main Title Screen 
         Appears when the page loads for the first time 
     -->
     <script id="intro-screen-template" type="text/template">
-        <div class="titleWrapper">
-            <div class="title">
-                PARTYGAME
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="title">partygame</div>
             </div>
-            <div class="whoAreYou">Is this device your personal controller or the shared screen?</div>
-            <div class="buttons">
-                <!-- TODO: Can we automatically pick the right role based on the device type? -->
-                <button id="btnSelectRolePlayer" class="btn left">PERSONAL CONTROLLER</button> <!-- Join a game on your mobile device -->
-                <button id="btnSelectRoleHost" class="btn right">SHARED SCREEN</button> <!-- Host a new game on your TV -->
-                <div style="clear:both"></div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="title-prompt">Which device is this?</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <button id="btnSelectRolePlayer" class="btn btn-default btn-lg btn-stack">PERSONAL CONTROLLER</button> <!-- Join a game on your mobile device -->
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <button id="btnSelectRoleHost" class="btn btn-default btn-lg btn-stack">BIG SCREEN</button> <!-- Host a new game on your TV -->
             </div>
         </div>
     </script>
@@ -37,13 +49,24 @@
         TODO: Rename
     -->
     <script id="create-game-template" type="text/template">
-        <div class="createGameWrapper">
-            <div class="info">Press <strong>EVERYBODY'S IN</strong> to start the game.</div>
-            <div class="info">Join on your phone or tablet at:</div>
-            <div id="gameURL" class="infoBig">Error!</div>
-            <div class="info">Your room code is:</div>
-            <div id="spanNewGameCode" class="gameId">Error!</div>
-            <div id="playersWaiting"></div>
+        <div class="row">
+            <div class="col-sm-1"></div>
+            <div class="col-sm-6">
+                <div class="title">PARTYGAME</div>
+                <div class="title-prompt">Your room code is:</div>
+                <div id="spanNewGameCode" class="large-code">Error!</div>
+                
+                <div class="title-prompt">Join on your phone or tablet at:</div>
+                <div id="gameURL" class="large-code">Error!</div>
+
+                <div class="title-prompt">Then press "EVERYBODY'S IN" to start the game.</div>
+            </div>
+            <div class="col-sm-1"></div>
+            <div class="col-sm-3 sidebar">
+                <div class="title-sidebar">PLAYERS IN ROOM</div>
+                <div id="playersWaiting"></div>
+            </div>
+            <div class="col-sm-1"></div>
         </div>
     </script>
 
@@ -52,18 +75,25 @@
         Appears when a user selects Player role on the Title Screen 
     -->
     <script id="join-game-template" type="text/template">
-        <div class="joinGameWrapper">
-            <div class="info">
-                <label for="inputGameId">Room code:</label>
-                <input id="inputGameId" type="text"/>
+        <div class="row">
+            <div class="col-sm-1"></div>
+            <div class="col-sm-10">
+            <form>
+                <div class="form-group">
+                    <label for="inputGameId">ROOM CODE</label>
+                    <input id="inputGameId" class="form-control" type="text" maxlength="10"/>
+                </div>
+                <div class="info">
+                    <label for="inputPlayerName">PLAYER NAME</label>
+                    <input id="inputPlayerName" class="form-control" type="text" maxlength="20"/>
+                </div>
+                <p>&nbsp;</p>
+                <div class="info buttons">
+                    <button id="btnJoin" class="btn btn-primary btn-lg" type="button">JOIN</button>
+                </div>
+            </form>
             </div>
-            <div class="info">
-                <label for="inputPlayerName">Player name:</label>
-                <input id="inputPlayerName" type="text" />
-            </div>
-            <div class="info buttons">
-                <button id="btnJoin" class="btn">JOIN</button>
-            </div>
+            <div class="col-sm-1"></div>
         </div>
     </script>
 
@@ -72,10 +102,10 @@
         Appears when a player has joined a game, but game hasn't started yet
     -->
     <script id="waiting-template" type="text/template">
-        <div class="waitingWrapper">
+        <div class="row">
             <div class="info buttons">
-                <div id="playerWaitingMessage"></div>
-                <button id="btnEverybodysIn" class="btn">EVERYBODY'S IN</button>
+                <div id="playerWaitingMessage" class="player-prompt"></div>
+                <button id="btnEverybodysIn" class="btn btn-success btn-lg">EVERYBODY'S IN</button>
             </div>
         </div>
     </script>
@@ -85,14 +115,21 @@
         Screen for Player to type an answer for the prompt displayed on Host.
     -->
     <script id="player-enter-answer-template" type="text/template">
-        <div class="enterAnswerWrapper">
-            <div class="info">
-                <label for="inputPlayerAnswer">Enter your answer:</label>
-                <input id="inputPlayerAnswer" type="text" />
+        <div class="row">
+            <div class="col-sm-1"></div>
+            <div class="col-sm-10">
+            <form>
+                <div class="form-group">
+                    <label for="inputPlayerAnswer">ENTER YOUR ANSWER</label>
+                    <input id="inputPlayerAnswer" class="form-control" type="text" maxlength="50"/>
+                </div>
+                <p>&nbsp;</p>
+                <div class="info buttons">
+                    <button id="btnSubmitAnswer" class="btn btn-primary btn-lg" type="button">SUBMIT</button>
+                </div>
+            </form>
             </div>
-            <div class="info buttons">
-                <button id="btnSubmitAnswer" class="btn">Submit</button>
-            </div>
+            <div class="col-sm-1"></div>
         </div>
     </script>
 
@@ -102,7 +139,7 @@
     -->
     <script id="waiting-passive-template" type="text/template">
         <div class="waitingPassiveWrapper">
-            <div id="waitingPassiveMessage"></div>
+            <div id="waitingPassiveMessage" class="player-prompt"></div>
         </div>
     </script>
 
@@ -113,8 +150,9 @@
     <script id="player-game-over-template" type="text/template">
         <div class="gameOverWrapper">
             <div class="info buttons">
-                <button id="btnPlayAgainSamePlayers" class="btn">PLAY AGAIN WITH SAME PLAYERS</button>
-                <button id="btnPlayAgainNewPlayers" class="btn">PLAY AGAIN WITH NEW PLAYERS</button>
+                <button id="btnPlayAgainSamePlayers" class="btn btn-success btn-lg">PLAY AGAIN WITH SAME PLAYERS</button>
+                <p>&nbsp;</p>
+                <button id="btnPlayAgainNewPlayers" class="btn btn-default btn-lg">PLAY AGAIN WITH NEW PLAYERS</button>
             </div>
         </div>
     </script>
@@ -124,12 +162,16 @@
         Appears on Host before each round.
     -->
     <script id="host-display-leaderboard-template" type="text/template">
-        <div class="leaderboardWrapper">
-            <div class="leaderboardTitle">Leaderboard</div>
-            <ul id="playerScores"></ul>
-            <div class="countdownLabel"></div>
-            <div id="gameOverLabel"></div>
+        <div class="row">
+            <div class="col-sm-4"></div>
+            <div class="col-sm-4">
+                <div id="leaderboardTitle" class="title">LEADERBOARD</div>
+                <table id="playerScores" class="table"></table>
+                <div id="progress" class="title"></div>
+            </div>
+            <div class="col-sm-4"></div>
         </div>
+        <div class="countdown-label" style="display: none;"></div>
     </script>
 
     <!-- 
@@ -139,18 +181,20 @@
     <script id="host-display-prompt-template" type="text/template">
         <div id="promptArea">
             <div class="title" id="promptTitle"></div>
-            <div id="prompt">Loading...</div>
-            <div class="countdownLabel"></div>
+            <div id="prompt" class="prompt">Loading...</div>
+            <div class="countdown-label"></div>
         </div>
     </script>
 
     <!-- 
-        Host Display Answers 
+        Host/Player Display Answers 
     -->
     <script id="host-answers-template" type="text/template">
         <div id="answersArea">
-            <div class="title">Vote on your favorite answer:</div>
-            <ul id="answersList"></ul>
+            <div class="title">VOTE ON YOUR FAVORITE ANSWER</div>
+            <div id="promptTitle" class="title"></div>
+            <div id="prompt" class="prompt"></div>
+            <div id="answersList"></div>
         </div>
     </script>
 
@@ -159,15 +203,20 @@
         Display a table of answer, # votes, playerName
     -->
     <script id="host-round-results-template" type="text/template">
-        <div id="roundResultsArea">
-            <div class="title">Round results:</div>
-            <ul id="roundResultsList"></ul>
-            <div class="countdownLabel"></div>
+        <div class="row">
+            <div class="col-sm-1"></div>
+            <div class="col-sm-10">
+                <div class="title">ROUND RESULTS</div>
+                <table id="roundResultsList" class="table"></table>
+            </div>
+            <div class="col-sm-1"></div>
         </div>
+        <div class="countdown-label"></div>
     </script>
 
     <!-- JavaScript Libraries -->
     <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
 
     <!-- Eliminate the 300ms delay when tapping on mobile device -->
     <script src="js/fastclick.js"></script>

@@ -1,0 +1,108 @@
+/** General **/
+body {
+    text-align: center;
+    padding-top: 40px;
+    background-color: #79589F;
+    color: #a996c0;
+}
+
+table {
+    text-align: left;
+    font-size: 26px;
+}
+
+    .td-left {
+        text-align: left;
+    }
+    .td-right {
+        text-align: right;
+    }
+
+.btn-stack {
+    margin-top: 20px;
+}
+
+.btn-default {border: none;}
+.btn-primary {background-color: #408fec; border: none;}
+.btn-primary:hover, .btn-primary:active, .btn-primary:focus {background-color: #8cbcf3;}
+.btn-success {background-color: #74c080; border: none;}
+.btn-success:hover, .btn-success:active, .btn-success:focus {background-color: #aad8b3;}
+.btn-info {background-color: #534A93;}
+.btn-warning {background-color: #FA9F47;}
+.btn-danger {background-color: #D64242;}
+
+/** Host display **/
+.title {
+    font-size: 26px;
+    font-weight: bold;
+    padding-bottom: 10px;
+    color: #a996c0;
+}
+
+.title-prompt {
+    font-size: 26px;
+    font-weight: normal;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    color: #a996c0;
+}
+
+.large-code {
+    font-size: 48px;
+    font-weight: bold;
+    color: #f7f3fb;
+}
+
+.sidebar {
+    margin-top: 80px;
+    padding: 20px;
+    background-color: #534A93;
+}
+
+.title-sidebar {
+    font-size: 18px;
+    color: #a996c0;
+}
+
+.sidebar-player {
+    font-size: 26px;
+    font-weight: bold;
+    color: #f7f3fb;
+}
+
+.countdown-label {
+    font-size: 26px;
+    padding: 10px 20px;
+    background-color: #534A93;
+    position: fixed;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    width: 100%;
+}
+
+.prompt {
+    font-size: 36px;
+    font-weight: normal;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+/** Player display **/
+.player-prompt {
+    font-size: 26px;
+    font-weight: normal;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    color: #f7f3fb;
+}
+
+.answer-row {
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+/*label {
+    color: #f7f3fb;
+}*/

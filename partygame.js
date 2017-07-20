@@ -34,7 +34,9 @@ var gameSocket; // Socket for this connection/game (is this necessary?)
 //         },
 //         currentRound: int,
 //         whoHasVoted: [playerId, playerId, ...],
-//         currentAnswers: [ {answer: string, playerId: guid, votes: int}, ... ]         
+//         currentAnswers: [ {answer: string, playerId: guid, votes: int}, ... ],
+//         currentPrompt: {title, prompt},
+//         promptIds: [int, int, int]
 //     }, ...
 // }
 var games = {};
@@ -105,7 +107,7 @@ function hostStartRound(gameId) {
     games[gameId]['currentRound'] += 1;
     games[gameId]['whoHasVoted'] = [];
     games[gameId]['currentAnswers'] = [];
-    sendPrompt(0, gameId);
+    sendPrompt(games[gameId]['currentRound'], gameId);
 }
 
 /**
@@ -113,29 +115,44 @@ function hostStartRound(gameId) {
  */
 function hostDisplayAnswers(gameId) {
     console.log('hostDisplayAnswers');
-    console.log(games[gameId]);
     
+    // Display in random order
     games[gameId]['currentAnswers'] = shuffle(games[gameId]['currentAnswers']);
     
-    // Send list of answers to Host
-    data = games[gameId]['currentAnswers'].map(function(obj) {return {'answer': obj['answer'], 'shouldHide': false};});
+    // Send all answers to Host
+    var answers = games[gameId]['currentAnswers'].map(function(obj) {
+        return {
+            'answer': obj['answer'], 
+            'shouldHide': false};
+        });
+    data = {
+        'prompt': games[gameId]['currentPrompt']['question'],
+        'title': games[gameId]['currentPrompt']['title'],
+        'answers': answers
+    };
     io.sockets.to(games[gameId]['hostId']).emit('newAnswerData', data);
 
     // Send customized list of answers to each Player
     // Use 'shouldHide' so players can't vote for their own answer
+    // Players don't need the prompt since it's only displayed on Host
     var playerIds = Object.keys(games[gameId]['players']);
     for(var i = 0; i < playerIds.length; i++) {
-        data = games[gameId]['currentAnswers'].map(function(obj) {
+        answers = games[gameId]['currentAnswers'].map(function(obj) {
             return {
                 'answer': obj['answer'], 
                 'shouldHide': (obj['playerId'] == playerIds[i])
             };
         });
+        var data = {'answers': answers};
+        console.log('OKAY HERE"S THE DATA');
+        console.log(data);
 
         // If nobody else submitted an answer, then this player doesn't need to vote
-        if(data.length == 0) {
+        if(data.answers.length == 0) {
+            console.log('one');
             games[gameId]['whoHasVoted'].push(playerIds[i]);
-        } else if(data.length == 1 && data[0]['shouldHide']) {
+        } else if(data.answers.length == 1 && data.answers[0]['shouldHide']) {
+            console.log('two')
             games[gameId]['whoHasVoted'].push(playerIds[i]);
         }
 
@@ -165,7 +182,9 @@ function hostNextRound(gameId) {
         mySocketId: sock.id,
         gameId: gameId,
         leaderboard: leaderboard,
-        isGameOver: games[gameId]['currentRound'] >= NUM_ROUNDS
+        isGameOver: games[gameId]['currentRound'] >= NUM_ROUNDS,
+        numRoundsComplete: games[gameId]['currentRound'],
+        numRoundsTotal: NUM_ROUNDS
     };
     io.sockets.in(data.gameId).emit('beginNextRound', data);
 }
@@ -315,14 +334,25 @@ function playerRestartNewPlayers(gameId) {
 function sendPrompt(round, gameId) {
     console.log('sendPrompt');
 
-    // TODO: Make sure no repeat prompts within a game; for now just pick random one
-    var i = Math.floor(Math.random() * 5);
-    var prompt = promptPool[i];
+    if(!games[gameId]['promptIds']) {
+        // First prompt request. Generate a random list of prompt IDs.
+        // We'll use this list of IDs for the game to ensure no repeat questions. 
+        var idList = [];
+        for(var i = 0; i < NUM_ROUNDS; i++) {
+            idList.push(i);
+        }
+        shuffle(idList);
+        games[gameId]['promptIds'] = idList;
+        console.log(games[gameId]['promptIds']);
+    }
+
+    var prompt = promptPool[games[gameId]['promptIds']][round];
     var data = {
         round: round, 
         prompt: prompt['question'],
         title: prompt['title']
     };
+    games[gameId]['currentPrompt'] = prompt;
     io.sockets.in(gameId).emit('newPromptData', data);
 }
 

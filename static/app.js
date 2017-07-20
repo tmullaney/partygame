@@ -80,17 +80,22 @@ jQuery(function($) {
         /**
          * The list of answers is returned from the server.
          * Host will display answers, Players will vote on them.
-         * @param data Array of {answer: string, shouldHide: bool}
+         * @param data {{ prompt: string, title: string, answers: [{answer: string, shouldHide: bool}, ...] }}
          */
         onNewAnswerData: function(data) {
             console.log('onNewAnswerData');
+            console.log(data);
             App.$gameArea.html(App.$templateAnswers);
+            if(App.myRole == 'Host') {
+                $('#prompt').text(data.prompt);
+                $('#promptTitle').text(data.title);
+            }
             var numVisibleAnswers = 0;
-            for(var i = 0; i < data.length; i++) {
-                if(!data[i]['shouldHide']) {
+            for(var i = 0; i < data.answers.length; i++) {
+                if(!data['answers'][i]['shouldHide']) {
                     numVisibleAnswers++;
-                    $('#answersList').append('<li><button class="btnAnswer" + value="' 
-                        + data[i]['answer'] + '">' + data[i]['answer'] + '</button></li>');
+                    $('#answersList').append('<div class="row answer-row"><button class="btnAnswer btn btn-default btn-block btn-lg" + value="' 
+                        + data['answers'][i]['answer'] + '">' + data['answers'][i]['answer'] + '</button></div>');
                 }
             }
 
@@ -120,16 +125,16 @@ jQuery(function($) {
             // Display the round results
             App.$gameArea.html(App.$templateRoundResults);
             for(var i = 0; i < roundResults.length; i++) {
-                $('#roundResultsList').append('<li>' 
-                    + '<span>' + roundResults[i]['votes'] + '</span>'
-                    + '<span>' + roundResults[i]['answer'] + '</span>'
-                    + '<span>' + roundResults[i]['playerName'] + '</span>'
-                    + '</li>');
+                $('#roundResultsList').append('<tr>' 
+                    + '<td>' + roundResults[i]['playerName'] + '</td>'
+                    + '<td>' + roundResults[i]['answer'] + '</td>'
+                    + '<td class="td-right">(' + roundResults[i]['votes'] + ' votes)</td>'
+                    + '</tr>');
             }
 
-            // Start the countdown to start next round (where we show overall leaderboard)
-            var $countdownLabel = $('.countdownLabel');
-            App.countDown($countdownLabel, NEXT_ROUND_COUNTDOWN, function() {
+            // Start the countdown to show overall leaderboard
+            var $countdownLabel = $('.countdown-label');
+            App.countDown($countdownLabel, NEXT_ROUND_COUNTDOWN, 'Continuing in... ', function() {
                 IO.socket.emit('hostPostRoundCountdownFinished', App.gameId);
             });
         },
@@ -244,8 +249,10 @@ jQuery(function($) {
              */
             displayNewGameScreen: function() {
                 App.$gameArea.html(App.$templateNewGame);
-                $('#gameURL').text(window.location.href);
-                // App.doTextFit('#gameURL');
+
+                // Remove https:// and trailing / from game URL
+                var gameURL = window.location.href.substring(window.location.href.indexOf("//") + 2, window.location.href.length - 1); 
+                $('#gameURL').text(gameURL);
                 $('#spanNewGameCode').text(App.gameId);
             },
 
@@ -258,14 +265,14 @@ jQuery(function($) {
                     App.Host.displayNewGameScreen();
                 }
 
-                $('#playersWaiting').append('<p>Player ' + data.playerName + ' joined.</p>');
+                $('#playersWaiting').append('<p class="sidebar-player">' + data.playerName + '<p/>');
                 App.Host.players.push(data);
                 console.log('Player ' + data.playerName + ' joined.');
             },
 
             /**
              * About to do next round. Show the leaderboard and start the countdown on Host.
-             * @param data {{ TODO }}
+             * @param data {{mySocketId, gameId, leaderboard, isGameOver, numRoundsComplete, numRoundsTotal}}
              */
             gameCountdown: function(data) {
                 console.log('gameCountdown. hostData:');
@@ -273,18 +280,19 @@ jQuery(function($) {
                 
                 // Display the overall leaderboard
                 App.$gameArea.html(App.$templateDisplayLeaderboard);
-                $('#playerScores').empty();
                 for(var i = 0; i < data.leaderboard.length; i++) {
-                    $('#playerScores').append('<li>' + data.leaderboard[i].score + ' | ' + data.leaderboard[i].playerName + '</li>');
+                    $('#playerScores').append('<tr><td class="td-left">' + data.leaderboard[i].playerName + '</td><td class="td-right">' + data.leaderboard[i].score + '</td></tr>');
                 }
                 
+                $('#progress').text(data.numRoundsComplete + ' of ' + data.numRoundsTotal + ' rounds complete');
                 if(data.isGameOver) {
                     // Game over
-                    $('#gameOverLabel').text('Game over');
+                    $('#leaderboardTitle').text('GAME OVER');
+                    $('#progress').text('Play again?');
                 } else {
                     // Start countdown for next round
-                    var $countdownLabel = $('.countdownLabel');
-                    App.countDown($countdownLabel, NEXT_ROUND_COUNTDOWN, function() {
+                    var $countdownLabel = $('.countdown-label');
+                    App.countDown($countdownLabel, NEXT_ROUND_COUNTDOWN, 'Starting next round in... ', function() {
                         IO.socket.emit('hostPreRoundCountdownFinished', App.gameId);
                     });
                 }
@@ -297,14 +305,11 @@ jQuery(function($) {
             newPrompt: function(data) {
                 App.$gameArea.html(App.$templateDisplayPrompt);
                 $('#prompt').text(data.prompt);
-                $('#promptTitle').text(data.title);
-                console.log('prompt');
-                console.log($('#prompt'));
-                console.log(data);
+                $('#promptTitle').text('Topic: ' + data.title);
 
                 // Start the countdown
-                var $countdownLabel = $('.countdownLabel');
-                App.countDown($countdownLabel, PROMPT_COUNTDOWN, function() {
+                var $countdownLabel = $('.countdown-label');
+                App.countDown($countdownLabel, PROMPT_COUNTDOWN, 'Seconds remaining... ', function() {
                     IO.socket.emit('hostPromptCountdownFinished', App.gameId);
                     // TODO: Cancel this if everybody answers before countdown ends
                 });
@@ -334,6 +339,7 @@ jQuery(function($) {
              * Handler for clicking 'JOIN' button.
              */
             onSelectRolePlayer: function() {
+                // TODO: Can we automatically pick the right role based on the device type?
                 console.log('onSelectRolePlayer');
                 App.$gameArea.html(App.$templateJoinGame);
             },
@@ -359,7 +365,7 @@ jQuery(function($) {
              */
             onPlayerStartClick: function() {
                 console.log('onPlayerStartClick');
-                IO.socket.emit('playerStartGame', App.gameId);
+                IO.socket.emit('playerStartGame', App.gameId); // TODO: Race condition? 
             },
 
             /**
@@ -436,7 +442,7 @@ jQuery(function($) {
                     App.myRole = 'Player';
                     App.gameId = data.gameId;
                     App.$gameArea.html(App.$templateWaitingScreen);
-                    $('#playerWaitingMessage').text('Joined game ' + data.gameId + '.');
+                    $('#playerWaitingMessage').text('Joined game ' + data.gameId);
                 }
             },
 
@@ -450,7 +456,8 @@ jQuery(function($) {
                     App.$gameArea.html(App.$templatePlayerGameOver);
                 } else {
                     // TODO: Use a template?
-                    $('#gameArea').html('<div class="gameOver">Get Ready!</div>'); 
+                    App.$gameArea.html(App.$templateWaitingPassive);
+                    $('#waitingPassiveMessage').text('Waiting for round to start...');
                 }
             },
 
@@ -470,15 +477,20 @@ jQuery(function($) {
          * @param startTime Number of seconds to start from
          * @param callback The function to call when the timer ends
          */
-        countDown: function($el, startTime, callback) {
+        countDown: function($el, startTime, message, callback) {
             console.log('countDown');
-            $el.text(startTime);
+            if(message == null) {
+                message = 'Continuing in... ';
+            }
+            $el.show();
+            $el.text(message + startTime);
             var timer = setInterval(doDecrement, 1000);
             function doDecrement() {
                 startTime -= 1;
-                $el.text(startTime);
+                $el.text(message + startTime);
                 if(startTime <= 0) {
                     clearInterval(timer);
+                    $el.hide();
                     callback();
                     return;
                 }

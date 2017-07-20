@@ -1,0 +1,16 @@
+{
+  "name": "partygame",
+  "version": "1.0.0",
+  "description": "No description yet.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "3.x",
+    "socket.io":"1.0"
+  }
+}

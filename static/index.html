@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link href="css/styles.css" rel="stylesheet">
+    <title>partygame</title>
+</head>
+
+<body>
+    <div id="gameArea">
+        <!-- This will display the templates defined below -->
+    </div>
+
+    <!-- 
+        Main Title Screen 
+        Appears when the page loads for the first time 
+    -->
+    <script id="intro-screen-template" type="text/template">
+        <div class="titleWrapper">
+            <div class="title">
+                PARTYGAME
+            </div>
+            <div class="whoAreYou">Is this device your personal controller or the shared screen?</div>
+            <div class="buttons">
+                <!-- TODO: Can we automatically pick the right role based on the device type? -->
+                <button id="btnSelectRolePlayer" class="btn left">PERSONAL CONTROLLER</button> <!-- Join a game on your mobile device -->
+                <button id="btnSelectRoleHost" class="btn right">SHARED SCREEN</button> <!-- Host a new game on your TV -->
+                <div style="clear:both"></div>
+            </div>
+        </div>
+    </script>
+
+    <!-- 
+        Host Waiting Screen
+        Appears when a user selects Host role on the Title Screen
+        TODO: Rename
+    -->
+    <script id="create-game-template" type="text/template">
+        <div class="createGameWrapper">
+            <div class="info">Press <strong>EVERYBODY'S IN</strong> to start the game.</div>
+            <div class="info">Join on your phone or tablet at:</div>
+            <div id="gameURL" class="infoBig">Error!</div>
+            <div class="info">Your room code is:</div>
+            <div id="spanNewGameCode" class="gameId">Error!</div>
+            <div id="playersWaiting"></div>
+        </div>
+    </script>
+
+    <!-- 
+        Player Join Game
+        Appears when a user selects Player role on the Title Screen 
+    -->
+    <script id="join-game-template" type="text/template">
+        <div class="joinGameWrapper">
+            <div class="info">
+                <label for="inputGameId">Room code:</label>
+                <input id="inputGameId" type="text"/>
+            </div>
+            <div class="info">
+                <label for="inputPlayerName">Player name:</label>
+                <input id="inputPlayerName" type="text" />
+            </div>
+            <div class="info buttons">
+                <button id="btnJoin" class="btn">JOIN</button>
+            </div>
+        </div>
+    </script>
+
+    <!-- 
+        Player Waiting to Start Screen
+        Appears when a player has joined a game, but game hasn't started yet
+    -->
+    <script id="waiting-template" type="text/template">
+        <div class="waitingWrapper">
+            <div class="info buttons">
+                <div id="playerWaitingMessage"></div>
+                <button id="btnEverybodysIn" class="btn">EVERYBODY'S IN</button>
+            </div>
+        </div>
+    </script>
+
+    <!-- 
+        Player Enter Answer 
+        Screen for Player to type an answer for the prompt displayed on Host.
+    -->
+    <script id="player-enter-answer-template" type="text/template">
+        <div class="enterAnswerWrapper">
+            <div class="info">
+                <label for="inputPlayerAnswer">Enter your answer:</label>
+                <input id="inputPlayerAnswer" type="text" />
+            </div>
+            <div class="info buttons">
+                <button id="btnSubmitAnswer" class="btn">Submit</button>
+            </div>
+        </div>
+    </script>
+
+    <!-- 
+        Waiting Passive
+        Appears when a player has entered an answer/vote, and needs to wait for others to do same.
+    -->
+    <script id="waiting-passive-template" type="text/template">
+        <div class="waitingPassiveWrapper">
+            <div id="waitingPassiveMessage"></div>
+        </div>
+    </script>
+
+    <!-- 
+        Player Game Over
+        Appears on Player device at end of game.
+    -->
+    <script id="player-game-over-template" type="text/template">
+        <div class="gameOverWrapper">
+            <div class="info buttons">
+                <button id="btnPlayAgainSamePlayers" class="btn">PLAY AGAIN WITH SAME PLAYERS</button>
+                <button id="btnPlayAgainNewPlayers" class="btn">PLAY AGAIN WITH NEW PLAYERS</button>
+            </div>
+        </div>
+    </script>
+
+    <!-- 
+        Host Display Leaderboard
+        Appears on Host before each round.
+    -->
+    <script id="host-display-leaderboard-template" type="text/template">
+        <div class="leaderboardWrapper">
+            <div class="leaderboardTitle">Leaderboard</div>
+            <ul id="playerScores"></ul>
+            <div class="countdownLabel"></div>
+            <div id="gameOverLabel"></div>
+        </div>
+    </script>
+
+    <!-- 
+        Host Display Prompt
+        This is the 'Host' screen. It displays the word for each player to match 
+    -->
+    <script id="host-display-prompt-template" type="text/template">
+        <div id="promptArea">
+            <div class="title" id="promptTitle"></div>
+            <div id="prompt">Loading...</div>
+            <div class="countdownLabel"></div>
+        </div>
+    </script>
+
+    <!-- 
+        Host Display Answers 
+    -->
+    <script id="host-answers-template" type="text/template">
+        <div id="answersArea">
+            <div class="title">Vote on your favorite answer:</div>
+            <ul id="answersList"></ul>
+        </div>
+    </script>
+
+    <!--
+        Host Display Round Results
+        Display a table of answer, # votes, playerName
+    -->
+    <script id="host-round-results-template" type="text/template">
+        <div id="roundResultsArea">
+            <div class="title">Round results:</div>
+            <ul id="roundResultsList"></ul>
+            <div class="countdownLabel"></div>
+        </div>
+    </script>
+
+    <!-- JavaScript Libraries -->
+    <script src="js/jquery-3.2.1.min.js"></script>
+
+    <!-- Eliminate the 300ms delay when tapping on mobile device -->
+    <script src="js/fastclick.js"></script>
+
+    <!-- If Socket.IO is used with Express, then the /socket.io/ path will
+        serve the proper Socket.IO javascript files used by the browser -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Client-side game logic -->
+    <script src="app.js"></script>
+
+</body>
+</html>

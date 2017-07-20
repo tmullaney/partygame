@@ -5,14 +5,14 @@
  *  1)  Everybody starts on Title Screen
  *  2)  Host (big screen) creates new game 
  *  3)  Players (mobile devices) join game
- *  4)  A player clicks 'Join'
+ *  4)  A player indicates that everybody is ready
  *  5)  Host displays leaderboard (5 sec)
  *  6)  Host displays prompt (30 sec)
  *  7)  Players input answers
  *  8)  Host displays answers
  *  9)  Players vote on best answers
  *  10) Host displays voting results
- *  11) Return to #5 and loop 10x for full game
+ *  11) Return to #5 and loop for full game
  *  12) Host displays winner
  *  13) A player clicks 'Restart'
  */

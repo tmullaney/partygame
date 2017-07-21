@@ -1,1 +1,4 @@
 node_modules/
+data/wikipedia/*.json
+data/wikipedia/*.txt
+*.pyc

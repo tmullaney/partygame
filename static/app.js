@@ -3,8 +3,8 @@ jQuery(function($) {
     'use strict';
 
     // Constants
-    var NEXT_ROUND_COUNTDOWN = 5; // seconds
-    var PROMPT_COUNTDOWN = 5; // seconds
+    var NEXT_ROUND_COUNTDOWN = 7; // seconds
+    var PROMPT_COUNTDOWN = 45; // seconds
 
     // Globals
     var timer = null; 

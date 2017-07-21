@@ -36,7 +36,8 @@ var gameSocket; // Socket for this connection/game (is this necessary?)
 //         whoHasVoted: [playerId, playerId, ...],
 //         currentAnswers: [ {answer: string, playerId: guid, votes: int}, ... ],
 //         currentPrompt: {title, prompt},
-//         promptIds: [int, int, int]
+//         promptIds: [int, int, int],
+//         state: 'answering' | 'voting' | 'waiting' 
 //     }, ...
 // }
 var games = {};
@@ -67,7 +68,6 @@ exports.initGame = function(sio, socket) {
     // Host events
     gameSocket.on('hostCreateNewGame', hostCreateNewGame);
     gameSocket.on('hostPreRoundCountdownFinished', hostStartRound);
-    gameSocket.on('hostNextRound', hostNextRound);
     gameSocket.on('hostPromptCountdownFinished', hostDisplayAnswers);
     gameSocket.on('hostPostRoundCountdownFinished', hostNextRound);
 
@@ -104,10 +104,21 @@ function hostCreateNewGame() {
  */
 function hostStartRound(gameId) {
     console.log('hostStartRound');
+
+    // Make sure we have a valid room
+    if(!games[gameId]) {
+        io.sockets.to(this.id).emit('error', {'message': 'Room no longer exists.'});
+        return;
+    }
+
     games[gameId]['currentRound'] += 1;
     games[gameId]['whoHasVoted'] = [];
     games[gameId]['currentAnswers'] = [];
+    games[gameId]['state'] = 'waiting';
     sendPrompt(games[gameId]['currentRound'], gameId);
+    
+    console.log('whoHasVoted:');
+    console.log(games[gameId]['whoHasVoted']);
 }
 
 /**
@@ -115,8 +126,16 @@ function hostStartRound(gameId) {
  */
 function hostDisplayAnswers(gameId) {
     console.log('hostDisplayAnswers');
+
+    // Make sure we have a valid room
+    if(!games[gameId]) {
+        io.sockets.to(this.id).emit('error', {'message': 'Room no longer exists.'});
+        return;
+    }
+
+    games[gameId]['state'] = 'voting';
     
-    // Display in random order
+    // Display answers in random order
     games[gameId]['currentAnswers'] = shuffle(games[gameId]['currentAnswers']);
     
     // Send all answers to Host
@@ -166,6 +185,14 @@ function hostDisplayAnswers(gameId) {
  * @param gameId 
  */
 function hostNextRound(gameId) {
+    console.log('hostNextRound');
+
+    // Make sure we have a valid room
+    if(!games[gameId]) {
+        io.sockets.to(this.id).emit('error', {'message': 'Room no longer exists.'});
+        return;
+    }
+
     console.log(games[gameId]['players']);
     var leaderboard = Object.keys(games[gameId]['players']).map(function(key) {
         return games[gameId]['players'][key];
@@ -235,6 +262,12 @@ function playerJoinGame(data) {
  */
 function playerAnswer(data) {
     console.log('playerAnswer');
+
+    // Make sure we have a valid room
+    if(!games[data.gameId]) {
+        io.sockets.to(this.id).emit('error', {'message': 'Room no longer exists.'});
+        return;
+    }
     games[data.gameId]['currentAnswers'].push({
         'answer': data.answer,
         'playerId': data.playerId,
@@ -253,7 +286,17 @@ function playerAnswer(data) {
  */
 function playerVote(data) {
     console.log('playerVote');
-    console.log(data);
+    
+    // Make sure we have a valid room
+    if(!games[data.gameId]) {
+        io.sockets.to(this.id).emit('error', {'message': 'Room no longer exists.'});
+        return;
+    }
+
+    // Avoid race condition where two clients say 'doneVoting' with a null vote
+    if(games[data.gameId]['state'] != 'voting') {
+        return;
+    }
 
     // TODO: Should we have a countdown timer for voting too (and subtract from your score 
     // if you're too slow, or force everyone to vote?
@@ -262,17 +305,19 @@ function playerVote(data) {
     if(games[data.gameId]['whoHasVoted'].indexOf(data['playerId']) == -1) {
         // Increment vote count
         // Check based on answer text (not id) so we count everybody in case multiple people
-        // answered the same thing and it got a vote 
+        // answered the same thing and it got a vote. But again no voting for yourself. 
         games[data.gameId]['whoHasVoted'].push(data['playerId']);
         for(var i = 0; i < games[data.gameId]['currentAnswers'].length; i++) {
-            if(games[data.gameId]['currentAnswers'][i]['answer'] == data['vote']) {
+            if(games[data.gameId]['currentAnswers'][i]['answer'] == data['vote']
+                && games[data.gameId]['currentAnswers'][i]['playerId'] != data['playerId']) {
                 games[data.gameId]['currentAnswers'][i]['votes'] += 1;
             }
         }
     }
 
     // If everybody has voted, then we can determine the winner
-    if(games[data.gameId]['whoHasVoted'].length >= Object.keys(games[data.gameId]['players']).length) {
+    if(games[data.gameId]['whoHasVoted'].length == Object.keys(games[data.gameId]['players']).length) {
+        console.log('doneVoting');
         doneVoting(data.gameId);
     }
 }
@@ -282,6 +327,10 @@ function playerVote(data) {
  * @param gameId
  */
 function doneVoting(gameId) {
+    console.log('doneVoting');
+
+    games[gameId]['state'] = 'waiting';
+
     var roundResults = []; // structure: [ {votes, playerName, answer}, ... ] 
     for(var i = 0; i < games[gameId]['currentAnswers'].length; i++) {
         var answer = games[gameId]['currentAnswers'][i];
@@ -292,9 +341,13 @@ function doneVoting(gameId) {
 
     // TODO: Sort on votes, high to low
     // TODO: Also send the real answer to be displayed
+    var data = {
+        'realAnswer': games[gameId]['currentPrompt']['answer'],
+        'roundResults': roundResults
+    };
 
     // Notify Host to display winner
-    io.sockets.to(games[gameId]['hostId']).emit('doneVoting', roundResults);
+    io.sockets.to(games[gameId]['hostId']).emit('doneVoting', data);
 }
 
 /**
@@ -303,6 +356,12 @@ function doneVoting(gameId) {
  */
 function playerRestart(gameId) {
     console.log('playerRestart');
+
+    // Make sure we have a valid room
+    if(!games[gameId]) {
+        io.sockets.to(this.id).emit('error', {'message': 'Room no longer exists.'});
+        return;
+    }
 
     // Reset round and score info
     games[gameId]['currentRound'] = 0;
@@ -323,6 +382,13 @@ function playerRestart(gameId) {
  */
 function playerRestartNewPlayers(gameId) {
     console.log('playerRestartNewPlayers');
+
+    // Make sure we have a valid room
+    if(!games[gameId]) {
+        io.sockets.to(this.id).emit('error', {'message': 'Room no longer exists.'});
+        return;
+    }
+
     io.sockets.in(gameId).emit('restartWithNewPlayers', null);
 }
 
@@ -339,6 +405,8 @@ function playerRestartNewPlayers(gameId) {
 function sendPrompt(round, gameId) {
     console.log('sendPrompt');
 
+    games[gameId]['state'] = 'answering';
+
     if(!games[gameId]['promptIds']) {
         // First prompt request. Generate a random list of prompt IDs.
         // We'll use this list of IDs for the game to ensure no repeat questions. 
@@ -352,6 +420,9 @@ function sendPrompt(round, gameId) {
     }
 
     var prompt = promptPool[games[gameId]['promptIds'][round-1]]; // convert to 0-index
+    console.log(prompt);
+    console.log(round);
+    console.log(games[gameId]['promptIds']);
     var data = {
         round: round, 
         prompt: prompt['question'],

@@ -240,6 +240,11 @@ function playerAnswer(data) {
         'playerId': data.playerId,
         'votes': 0
     });
+
+    // If everybody has answered, tell Host to stop the countdown and move on to the next thing
+    if(games[data.gameId]['currentAnswers'].length == Object.keys(games[data.gameId]['players']).length) {
+        io.sockets.to(games[data.gameId]['hostId']).emit('doneAnswering', null);
+    }
 }
 
 /**

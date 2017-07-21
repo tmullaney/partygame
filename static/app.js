@@ -6,6 +6,9 @@ jQuery(function($) {
     var NEXT_ROUND_COUNTDOWN = 5; // seconds
     var PROMPT_COUNTDOWN = 15; // seconds
 
+    // Globals
+    var timer = null; 
+
     var IO = {
         /**
          * Called when page is displayed. Connects the Socket.IO client to the Socket.IO server.
@@ -27,6 +30,7 @@ jQuery(function($) {
             IO.socket.on('newPromptData', IO.onNewPromptData);
             IO.socket.on('newAnswerData', IO.onNewAnswerData);
             IO.socket.on('doneVoting', IO.onDoneVoting);
+            IO.socket.on('doneAnswering', IO.onDoneAnswering);
             IO.socket.on('error', IO.error);
             IO.socket.on('restartWithNewPlayers', IO.onRestartWithNewPlayers);
         },
@@ -112,6 +116,15 @@ jQuery(function($) {
                 App.$gameArea.html(App.$templateWaitingPassive);
                 $('#waitingPassiveMessage').text('Nothing to vote on. Waiting for other players...');
             }
+        },
+
+        /**
+         * All players have answered. Stop the countdown timer and move on to voting.
+         */
+        onDoneAnswering: function() {
+            console.log('onDoneAnswering');
+            clearTimeout(timer);
+            IO.socket.emit('hostPromptCountdownFinished', App.gameId);
         },
 
         /**
@@ -311,7 +324,6 @@ jQuery(function($) {
                 var $countdownLabel = $('.countdown-label');
                 App.countDown($countdownLabel, PROMPT_COUNTDOWN, 'Seconds remaining... ', function() {
                     IO.socket.emit('hostPromptCountdownFinished', App.gameId);
-                    // TODO: Cancel this if everybody answers before countdown ends
                 });
             },
 

@@ -113,6 +113,13 @@ function hostCreateNewGame() {
     };
 
     // Load random prompts
+    loadNewPrompts();
+}
+
+/**
+ * Load a new set of random prompts.
+ */
+function loadNewPrompts() {
     if(db) {
         db.collection('prompts').aggregate([{$sample: {size: NUM_ROUNDS}}]).toArray(function(err, docs) {
             if(err) {
@@ -400,7 +407,7 @@ function playerRestart(gameId) {
             games[gameId]['players'][playerId]['score'] = 0;
         }
     }
-
+    loadNewPrompts();
     hostNextRound(gameId);
 }
 

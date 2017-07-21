@@ -53,6 +53,20 @@ var NUM_ROUNDS = 3;
 // https://raw.githubusercontent.com/joebandenburg/fibbage-questions/master/questions.json
 // https://www.cardcastgame.com/
 var promptPool = require('./data/sample.json');
+var db;
+var mongodb = require('mongodb');
+if(process.env.MONGODB_URI) {
+    mongodb.MongoClient.connect(process.env.MONGODB_URI, function(err, database) {
+        if(err) {
+            console.log('Unable to connect to MongoDB instance. Falling back to sample.json.');
+        } else {
+            console.log('Connected to database.');
+            db = database;
+        }
+    });
+} else {
+    console.log('MONGODB_URI env var not set. Falling back to sample.json.');
+}
 
 /**
  * Called by index.js to initialize a new game.
@@ -97,6 +111,20 @@ function hostCreateNewGame() {
         currentRound: 0,
         players: {}
     };
+
+    // Load random prompts
+    if(db) {
+        db.collection('prompts').aggregate([{$sample: {size: NUM_ROUNDS}}]).toArray(function(err, docs) {
+            if(err) {
+                console.log('Query error. Falling back to sample.json.');
+                promptPool = shuffle(promptPool);
+            } else {
+                promptPool = docs;
+            }
+        });
+    } else {
+        promptPool = shuffle(promptPool);
+    }
 }
 
 /**
@@ -407,22 +435,9 @@ function sendPrompt(round, gameId) {
 
     games[gameId]['state'] = 'answering';
 
-    if(!games[gameId]['promptIds']) {
-        // First prompt request. Generate a random list of prompt IDs.
-        // We'll use this list of IDs for the game to ensure no repeat questions. 
-        var idList = [];
-        for(var i = 0; i < NUM_ROUNDS; i++) {
-            idList.push(i);
-        }
-        shuffle(idList);
-        games[gameId]['promptIds'] = idList;
-        console.log(games[gameId]['promptIds']);
-    }
-
-    var prompt = promptPool[games[gameId]['promptIds'][round-1]]; // convert to 0-index
+    var prompt = promptPool[round-1]; // convert to 0-index
     console.log(prompt);
     console.log(round);
-    console.log(games[gameId]['promptIds']);
     var data = {
         round: round, 
         prompt: prompt['question'],

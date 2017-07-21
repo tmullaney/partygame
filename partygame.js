@@ -261,6 +261,7 @@ function hostNextRound(gameId) {
  * @param data {{playerName, gameId}}
  */
 function playerJoinGame(data) {
+    data.playerName = data.playerName.toUpperCase(); // force uppercase
     console.log('Player ' + data.playerName + ' trying to join game ' + data.gameId);
     var sock = this;
     var room = gameSocket.adapter.rooms[data.gameId]; // io.sockets.adapter.rooms
@@ -297,6 +298,7 @@ function playerJoinGame(data) {
  */
 function playerAnswer(data) {
     console.log('playerAnswer');
+    data.answer = data.answer.toUpperCase();
 
     // Make sure we have a valid room
     if(!games[data.gameId]) {

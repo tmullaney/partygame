@@ -88,7 +88,7 @@ jQuery(function($) {
             App.$gameArea.html(App.$templateAnswers);
             if(App.myRole == 'Host') {
                 $('#prompt').text(data.prompt);
-                $('#promptTitle').text(data.title);
+                $('#promptTitle').text('Topic: ' + data.title);
             }
             var numVisibleAnswers = 0;
             for(var i = 0; i < data.answers.length; i++) {

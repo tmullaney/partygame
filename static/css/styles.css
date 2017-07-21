@@ -9,6 +9,7 @@ body {
 table {
     text-align: left;
     font-size: 26px;
+    color: #f7f3fb;
 }
 
     .td-left {
@@ -23,10 +24,16 @@ table {
 }
 
 .btn-default {border: none;}
-.btn-primary {background-color: #408fec; border: none;}
-.btn-primary:hover, .btn-primary:active, .btn-primary:focus {background-color: #8cbcf3;}
+
+.btn-default {color: #f7f3fb; background-color: #a996c0; border: none;}
+.btn-default:hover, .btn-default:active:focus, .btn-default:focus {color: #f7f3fb; background-color: #534A93;}
+
+.btn-primary {background-color: #a996c0; border: none;}
+.btn-primary:hover, .btn-primary:active:focus, .btn-primary:focus {background-color: #534A93;}
+
 .btn-success {background-color: #74c080; border: none;}
-.btn-success:hover, .btn-success:active, .btn-success:focus {background-color: #aad8b3;}
+.btn-success:hover, .btn-success:active:focus, .btn-success:focus {background-color: #aad8b3;}
+
 .btn-info {background-color: #534A93;}
 .btn-warning {background-color: #FA9F47;}
 .btn-danger {background-color: #D64242;}
@@ -56,12 +63,13 @@ table {
 .sidebar {
     margin-top: 80px;
     padding: 20px;
-    background-color: #534A93;
+    background-color: #a996c0;
+    border-radius: 10px;
 }
 
 .title-sidebar {
     font-size: 18px;
-    color: #a996c0;
+    color: #79589F;
 }
 
 .sidebar-player {
@@ -73,7 +81,8 @@ table {
 .countdown-label {
     font-size: 26px;
     padding: 10px 20px;
-    background-color: #534A93;
+    background-color: #a996c0;
+    color: #f7f3fb;
     position: fixed;
     left: 0px;
     right: 0px;
@@ -86,6 +95,15 @@ table {
     font-weight: normal;
     padding-top: 20px;
     padding-bottom: 20px;
+    color: #f7f3fb;
+}
+
+.prompt-small {
+    font-size: 26px;
+    font-weight: normal;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    color: #f7f3fb;
 }
 
 /** Player display **/
@@ -103,6 +121,16 @@ table {
     margin-bottom: 10px;
 }
 
-/*label {
-    color: #f7f3fb;
-}*/
+label {
+    font-size: 26px;
+}
+
+.form-control {
+    font-size: 26px;
+    height: 50px;
+}
+
+.btnAnswer {
+    font-size: 36px;
+    white-space: normal; /* word wrap for long answers */
+}

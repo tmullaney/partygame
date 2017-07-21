@@ -346,7 +346,7 @@ function sendPrompt(round, gameId) {
         console.log(games[gameId]['promptIds']);
     }
 
-    var prompt = promptPool[games[gameId]['promptIds']][round];
+    var prompt = promptPool[games[gameId]['promptIds'][round-1]]; // convert to 0-index
     var data = {
         round: round, 
         prompt: prompt['question'],
